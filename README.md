@@ -30,6 +30,12 @@ Figure 1: **在ImageNet-1K验证集上与不同的vision backbones进行比较�
 
 **参考repo:** [VAN-Classification](https://github.com/Visual-Attention-Network/VAN-Classification)
 
+项目aistudio地址：
+
+notebook任务：https://aistudio.baidu.com/aistudio/projectdetail/3841495
+
+脚本任务：https://aistudio.baidu.com/aistudio/clusterprojectdetail/3766724
+
 在此非常感谢`MenghaoGuo`等人贡献的[VAN-Classification](https://github.com/Visual-Attention-Network/VAN-Classification)，提高了本repo复现论文的效率。
 
 
