@@ -1,1 +1,1 @@
-README_ch.md
+README_peleenet.md
