@@ -1,6 +1,6 @@
 ===========================train_params===========================
 model_name:PeleeNet
-python:python3
+python:python3.7
 gpu_list:0|0,1
 -o Global.device:gpu
 -o Global.auto_cast:null
@@ -37,7 +37,7 @@ pretrained_model_url:https://paddle-imagenet-models-name.bj.bcebos.com/dygraph/l
 infer_model:../inference/
 infer_export:True
 infer_quant:Fasle
-inference:python/predict_cls.py -c configs/inference_cls.yaml
+inference:predict_cls.py -c configs/inference_cls.yaml
 -o Global.use_gpu:True|False
 -o Global.enable_mkldnn:True|False
 -o Global.cpu_num_threads:1|6
