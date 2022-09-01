@@ -1,186 +1,250 @@
-简体中文 | [English](README_en.md)
+# Rethinking Bottleneck Structure for Efficient Mobile Network Design
 
-# PaddleClas
+## 目录
 
-## 简介
+* [1. 简介](#1-简介)
+* [2. 数据集和复现精度](#2-数据集和复现精度)
+   * [2.1 数据集](#21-数据集)
+   * [2.2 复现精度](#22-复现精度)
+* [3. 准备数据与环境](#3-准备数据与环境)
+   * [3.1 准备环境](#31-准备环境)
+   * [3.2 准备数据](#32-准备数据)
+* [4. 开始使用](#4-开始使用)
+   * [4.1 模型训练](#41-模型训练)
+   * [4.2 模型评估](#42-模型评估)
+   * [4.3 模型预测](#43-模型预测)
+   * [4.4 模型导出](#44-模型导出)
+* [5. 自动化测试脚本](#5-自动化测试脚本)
+* [6. License](#6-license)
+* [7. 参考链接与文献](#7-参考链接与文献)
 
-飞桨图像识别套件PaddleClas是飞桨为工业界和学术界所准备的一个图像识别和图像分类任务的工具集，助力使用者训练出更好的视觉模型和应用落地。
+
+## 1. 简介
+
+这是一个PaddlePaddle实现的 MobileNeXt 。
+
+**论文:**
+[Rethinking Bottleneck Structure for Efficient Mobile Network Design](https://arxiv.org/pdf/2007.02269.pdf)
+
+**参考repo:**
+[MobileNeXt](https://github.com/yitu-opensource/MobileNeXt) &
+[rethinking_bottleneck_design](https://github.com/zhoudaquan/rethinking_bottleneck_design)
+
+在此非常感谢`zhoudaquan`和`yitutech-opensource`等人的贡献，提高了本repo复现论文的效率。
+
+
+## 2. 数据集和复现精度
+
+### 2.1 数据集
+
+[ImageNet](https://image-net.org/)项目是一个大型视觉数据库，用于视觉目标识别研究任务，该项目已手动标注了 1400 多万张图像。ImageNet-1k 是 ImageNet 数据集的子集，其包含 1000 个类别。训练集包含 1281167 个图像数据，验证集包含 50000 个图像数据。2010 年以来，ImageNet 项目每年举办一次图像分类竞赛，即 ImageNet 大规模视觉识别挑战赛（ILSVRC）。挑战赛使用的数据集即为 ImageNet-1k。到目前为止，ImageNet-1k 已经成为计算机视觉领域发展的最重要的数据集之一，其促进了整个计算机视觉的发展，很多计算机视觉下游任务的初始化模型都是基于该数据集训练得到的。
+
+数据集 | 训练集大小 | 测试集大小 | 类别数 | 备注|
+:------:|:---------------:|:---------------------:|:-----------:|:-----------:
+[ImageNet1k](http://www.image-net.org/challenges/LSVRC/2012/)|1.2M| 50k | 1000 |
+
+### 2.2 复现精度
+
+| 模型            | epochs | top1 acc (参考精度) | (复现精度) | 权重                 \| 训练日志   |
+|:--------------:|:------:|:------------------:|:---------:|:--------------------------------:|
+| MobileNeXt-1.0 |  200   | 74.022             | 74.024    | best_model.pdparams \| train.log |
+
+权重及训练日志下载地址：[百度网盘](https://pan.baidu.com/s/1Kt5Bk6PhlrCSs4Ie5hwamg?pwd=cp32)
+
+
+## 3. 准备数据与环境
+
+### 3.1 准备环境
+
+硬件和框架版本等环境的要求如下：
+
+- 硬件：4 * 3090
+- 框架：
+  - PaddlePaddle == 2.3.1
+  - Pillow == 8.4.0
+
+* 安装paddlepaddle
+
+```bash
+# 安装GPU版本的Paddle
+pip install paddlepaddle-gpu==2.3.1
+```
+
+更多安装方法可以参考：[Paddle安装指南](https://www.paddlepaddle.org.cn/)。
+
+* 下载代码
+
+```bash
+git clone https://github.com/flytocc/PaddleClas.git
+cd PaddleClas
+git checkout -b mobilenext
+```
+
+* 安装requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3.2 准备数据
+
+参考 [2.1 数据集](#21-数据集)，从官方下载数据后，按如下格式组织数据，即可在 PaddleClas 中使用 ImageNet1k 数据集进行训练。
+
+```bash
+imagenet/
+    |_ train/
+    |  |_ n01440764
+    |  |  |_ n01440764_10026.JPEG
+    |  |  |_ ...
+    |  |_ ...
+    |  |
+    |  |_ n15075141
+    |     |_ ...
+    |     |_ n15075141_9993.JPEG
+    |_ val/
+    |  |_ ILSVRC2012_val_00000001.JPEG
+    |  |_ ...
+    |  |_ ILSVRC2012_val_00050000.JPEG
+    |_ train_list.txt
+    |_ val_list.txt
+```
+
+
+## 4. 开始使用
+
+### 4.1 模型训练
+
+* 单机多卡训练
+
+```shell
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+python -m paddle.distributed.launch --gpus="0,1,2,3" \
+    tools/train.py \
+    -c ./ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml
+```
+
+cooldown
+
+```shell
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+python -m paddle.distributed.launch --gpus="0,1,2,3" \
+    tools/train.py \
+    -c ./ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100_cooldown.yaml
+```
+
+部分训练日志如下所示。
+
+```
+[2022/09/01 13:08:54] ppcls INFO: [Train][Epoch 187/200][Iter: 1350/2502]lr(LinearWarmup): 0.00125084, CELoss: 2.16119, loss: 2.16119, batch_cost: 0.53062s, reader_cost: 0.11223, ips: 241.22737 samples/s, eta: 4:57:50
+[2022/09/01 13:09:19] ppcls INFO: [Train][Epoch 187/200][Iter: 1400/2502]lr(LinearWarmup): 0.00125084, CELoss: 2.16252, loss: 2.16252, batch_cost: 0.53053s, reader_cost: 0.62890, ips: 241.26978 samples/s, eta: 4:57:20
+```
+
+### 4.2 模型评估
+
+``` shell
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+python -m paddle.distributed.launch --gpus="0,1,2,3" \
+    tools/eval.py \
+    -c ./ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml \
+    -o Global.pretrained_model=$TRAINED_MODEL
+```
+
+### 4.3 模型预测
+
+```shell
+python tools/infer.py \
+    -c ./ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml \
+    -o Infer.infer_imgs=./deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg \
+    -o Global.pretrained_model=$TRAINED_MODEL
+```
 
 <div align="center">
-<img src="./docs/images/class_simple.gif"  width = "600" />
-<p>PULC实用图像分类模型效果展示</p>
-</div>
-&nbsp;
-
-
-<div align="center">
-<img src="./docs/images/recognition.gif"  width = "400" />
-<p>PP-ShiTu图像识别系统效果展示</p>
+    <img src="./demo/ILSVRC2012_val_00020010.JPEG" width=300">
 </div>
 
+最终输出结果为
+```
+[{'class_ids': [178, 211, 246, 236, 209], 'scores': [0.85077, 0.0157, 0.01342, 0.00362, 0.00354], 'file_name': './deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg', 'label_names': ['Weimaraner', 'vizsla, Hungarian pointer', 'Great Dane', 'Doberman, Doberman pinscher', 'Chesapeake Bay retriever']}]
+```
+表示预测的类别为`Weimaraner（魏玛猎狗）`，ID是`178`，置信度为`0.85077`。
 
-## 近期更新
-- 📢将于**6月15-6月17日晚20:30** 进行为期三天的课程直播，详细介绍超轻量图像分类方案，对各场景模型优化原理及使用方式进行拆解，之后还有产业案例全流程实操，对各类痛难点解决方案进行手把手教学，加上现场互动答疑，抓紧扫码上车吧！
+### 4.4 模型导出
 
-<div align="center">
-<img src="https://user-images.githubusercontent.com/45199522/173483779-2332f990-4941-4f8d-baee-69b62035fc31.png" width = "200" height = "200"/>
-</div>
+```shell
+python tools/export_model.py \
+    -c ./ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml \
+    -o Global.save_inference_dir=./deploy/models/class_MobileNeXt_100_ImageNet_infer \
+    -o Global.pretrained_model=$TRAINED_MODEL
 
-- 🔥️ 2022.6.15 发布[PULC超轻量图像分类实用方案](docs/zh_CN/PULC/PULC_train.md)，CPU推理3ms，精度比肩SwinTransformer，覆盖人、车、OCR场景九大常见任务。
+python deploy/python/predict_cls.py \
+    -c deploy/configs/inference_cls.yaml \
+    -o Global.cpu_num_threads=1 \
+    -o Global.infer_imgs=./deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg \
+    -o Global.inference_model_dir=./deploy/models/class_MobileNeXt_100_ImageNet_infer \
+    -o PreProcess.transform_ops.0.ResizeImage.interpolation=bicubic \
+    -o PreProcess.transform_ops.0.ResizeImage.backend=pil \
+    -o PostProcess.Topk.class_id_map_file=./ppcls/utils/imagenet1k_label_list.txt
+```
 
-- 2022.5.26 [飞桨产业实践范例直播课](http://aglc.cn/v-c4FAR)，解读**超轻量重点区域人员出入管理方案**。
-
-- 2022.5.23 新增[人员出入管理范例库](https://aistudio.baidu.com/aistudio/projectdetail/4094475)，具体内容可以在 AI Studio 上体验。
-
-- 2022.5.20 上线[PP-HGNet](./docs/zh_CN/models/PP-HGNet.md), [PP-LCNetv2](./docs/zh_CN/models/PP-LCNetV2.md)。
-
-- 2022.4.21 新增 CVPR2022 oral论文 [MixFormer](https://arxiv.org/pdf/2204.02557.pdf) 相关[代码](https://github.com/PaddlePaddle/PaddleClas/pull/1820/files)。
-
-- [more](./docs/zh_CN/others/update_history.md)
-
-## 特性
-
-PaddleClas发布了[PP-HGNet](docs/zh_CN/models/PP-HGNet.md)、[PP-LCNetv2](docs/zh_CN/models/PP-LCNetV2.md)、 [PP-LCNet](docs/zh_CN/models/PP-LCNet.md)和[SSLD半监督知识蒸馏方案](docs/zh_CN/advanced_tutorials/ssld.md)等算法，
-并支持多种图像分类、识别相关算法，在此基础上打造[PULC超轻量图像分类方案](docs/zh_CN/PULC/PULC_quickstart.md)和[PP-ShiTu图像识别系统](./docs/zh_CN/quick_start/quick_start_recognition.md)。
-![](https://user-images.githubusercontent.com/19523330/173273046-239a42da-c88d-4c2c-94b1-2134557afa49.png)
-
-
-## 欢迎加入技术交流群
-
-* 您可以扫描下面的微信/QQ二维码（添加小助手微信并回复“C”），加入PaddleClas微信交流群，获得更高效的问题答疑，与各行各业开发者充分交流，期待您的加入。
-
-<div align="center">
-<img src="https://user-images.githubusercontent.com/48054808/160531099-9811bbe6-cfbb-47d5-8bdb-c2b40684d7dd.png" width="200"/>
-<img src="https://user-images.githubusercontent.com/80816848/164383225-e375eb86-716e-41b4-a9e0-4b8a3976c1aa.jpg" width="200"/>
-</div>
-
-## 快速体验
-
-PULC超轻量图像分类方案快速体验：[点击这里](docs/zh_CN/PULC/PULC_quickstart.md)
-
-PP-ShiTu图像识别快速体验：[点击这里](./docs/zh_CN/quick_start/quick_start_recognition.md)
-
-## 文档教程
-- [环境准备](docs/zh_CN/installation/install_paddleclas.md)
-- [PULC超轻量图像分类实用方案](docs/zh_CN/PULC/PULC_train.md)
-  - [超轻量图像分类快速体验](docs/zh_CN/PULC/PULC_quickstart.md)
-  - [超轻量图像分类模型库](docs/zh_CN/PULC/PULC_model_list.md)
-    - [PULC有人/无人分类模型](docs/zh_CN/PULC/PULC_person_exists.md)
-    - [PULC人体属性识别模型](docs/zh_CN/PULC/PULC_person_attribute.md)
-    - [PULC佩戴安全帽分类模型](docs/zh_CN/PULC/PULC_safety_helmet.md)
-    - [PULC交通标志分类模型](docs/zh_CN/PULC/PULC_traffic_sign.md)
-    - [PULC车辆属性识别模型](docs/zh_CN/PULC/PULC_vehicle_attribute.md)
-    - [PULC有车/无车分类模型](docs/zh_CN/PULC/PULC_car_exists.md)
-    - [PULC含文字图像方向分类模型](docs/zh_CN/PULC/PULC_text_image_orientation.md)
-    - [PULC文本行方向分类模型](docs/zh_CN/PULC/PULC_textline_orientation.md)
-    - [PULC语种分类模型](docs/zh_CN/PULC/PULC_language_classification.md)
-  - [模型训练](docs/zh_CN/PULC/PULC_train.md)
-  - 推理部署
-    - [基于python预测引擎推理](docs/zh_CN/inference_deployment/python_deploy.md#1)
-    - [基于C++预测引擎推理](docs/zh_CN/inference_deployment/cpp_deploy.md)
-    - [服务化部署](docs/zh_CN/inference_deployment/classification_serving_deploy.md)
-    - [端侧部署](docs/zh_CN/inference_deployment/paddle_lite_deploy.md)
-    - [Paddle2ONNX模型转化与预测](deploy/paddle2onnx/readme.md)
-  - [模型压缩](deploy/slim/README.md)
-- [PP-ShiTu图像识别系统介绍](#图像识别系统介绍)
-  - [图像识别快速体验](docs/zh_CN/quick_start/quick_start_recognition.md)
-  - 模块介绍
-    - [主体检测](./docs/zh_CN/image_recognition_pipeline/mainbody_detection.md)
-    - [特征提取模型](./docs/zh_CN/image_recognition_pipeline/feature_extraction.md)
-    - [向量检索](./docs/zh_CN/image_recognition_pipeline/vector_search.md)
-    - [哈希编码](docs/zh_CN/image_recognition_pipeline/)
-  - [模型训练](docs/zh_CN/models_training/recognition.md)
-  - 推理部署
-    - [基于python预测引擎推理](docs/zh_CN/inference_deployment/python_deploy.md#2)
-    - [基于C++预测引擎推理](deploy/cpp_shitu/readme.md)
-    - [服务化部署](docs/zh_CN/inference_deployment/recognition_serving_deploy.md)
-    - [端侧部署](deploy/lite_shitu/README.md)
-- PP系列骨干网络模型
-  - [PP-HGNet](docs/zh_CN/models/PP-HGNet.md)
-  - [PP-LCNetv2](docs/zh_CN/models/PP-LCNetV2.md)
-  - [PP-LCNet](docs/zh_CN/models/PP-LCNet.md)
-- [SSLD半监督知识蒸馏方案](docs/zh_CN/advanced_tutorials/ssld.md)
-- 前沿算法
-  - [骨干网络和预训练模型库](docs/zh_CN/algorithm_introduction/ImageNet_models.md)
-  - [度量学习](docs/zh_CN/algorithm_introduction/metric_learning.md)
-  - [模型压缩](docs/zh_CN/algorithm_introduction/model_prune_quantization.md)
-  - [模型蒸馏](docs/zh_CN/algorithm_introduction/knowledge_distillation.md)
-  - [数据增强](docs/zh_CN/advanced_tutorials/DataAugmentation.md)
-- [产业实用范例库](docs/zh_CN/samples)
-- [30分钟快速体验图像分类](docs/zh_CN/quick_start/quick_start_classification_new_user.md)
-- FAQ
-  - [图像识别精选问题](docs/zh_CN/faq_series/faq_2021_s2.md)
-  - [图像分类精选问题](docs/zh_CN/faq_series/faq_selected_30.md)
-  - [图像分类FAQ第一季](docs/zh_CN/faq_series/faq_2020_s1.md)
-  - [图像分类FAQ第二季](docs/zh_CN/faq_series/faq_2021_s1.md)
-- [社区贡献指南](./docs/zh_CN/advanced_tutorials/how_to_contribute.md)
-- [许可证书](#许可证书)
-- [贡献代码](#贡献代码)
+输出结果为
+```
+ILSVRC2012_val_00020010.jpeg:   class id(s): [178, 211, 246, 236, 209], score(s): [0.85, 0.02, 0.01, 0.00, 0.00], label_name(s): ['Weimaraner', 'vizsla, Hungarian pointer', 'Great Dane', 'Doberman, Doberman pinscher', 'Chesapeake Bay retriever']
+```
+表示预测的类别为`Weimaraner（魏玛猎狗）`，ID是`178`，置信度为`0.85`。与predict.py结果的误差在正常范围内。
 
 
-<a name="PULC超轻量图像分类方案"></a>
-## PULC超轻量图像分类方案
-<div align="center">
-<img src="https://user-images.githubusercontent.com/19523330/173011854-b10fcd7a-b799-4dfd-a1cf-9504952a3c44.png"  width = "800" />
-</div>
-PULC融合了骨干网络、数据增广、蒸馏等多种前沿算法，可以自动训练得到轻量且高精度的图像分类模型。
-PaddleClas提供了覆盖人、车、OCR场景九大常见任务的分类模型，CPU推理3ms，精度比肩SwinTransformer。
+## 5. 自动化测试脚本
 
-<a name="图像识别系统介绍"></a>
-## PP-ShiTu图像识别系统
+**详细日志在test_tipc/output**
 
-<div align="center">
-<img src="./docs/images/structure.jpg"  width = "800" />
-</div>
+TIPC: [TIPC: test_tipc/README.md](./test_tipc/README.md)
 
-PP-ShiTu是一个实用的轻量级通用图像识别系统，主要由主体检测、特征学习和向量检索三个模块组成。该系统从骨干网络选择和调整、损失函数的选择、数据增强、学习率变换策略、正则化参数选择、预训练模型使用以及模型裁剪量化8个方面，采用多种策略，对各个模块的模型进行优化，最终得到在CPU上仅0.2s即可完成10w+库的图像识别的系统。更多细节请参考[PP-ShiTu技术方案](https://arxiv.org/pdf/2111.00775.pdf)。
+首先安装auto_log，需要进行安装，安装方式如下：
+auto_log的详细介绍参考https://github.com/LDOUBLEV/AutoLog。
+```shell
+git clone https://github.com/LDOUBLEV/AutoLog
+cd AutoLog/
+pip3 install -r requirements.txt
+python3 setup.py bdist_wheel
+pip3 install ./dist/auto_log-*-py3-none-any.whl
+```
+进行TIPC：
+```bash
+bash test_tipc/prepare.sh test_tipc/configs/MobileNeXt/MobileNeXt_100_train_infer_python.txt 'lite_train_lite_infer'
 
-<a name="分类效果展示"></a>
-## PULC实用图像分类模型效果展示
-<div align="center">
-<img src="docs/images/classification.gif">
-</div>
+bash test_tipc/test_train_inference_python.sh test_tipc/configs/MobileNeXt/MobileNeXt_100_train_infer_python.txt 'lite_train_lite_infer'
+```
+TIPC结果：
 
-<a name="识别效果展示"></a>
-## PP-ShiTu图像识别系统效果展示
-- 瓶装饮料识别
-<div align="center">
-<img src="docs/images/drink_demo.gif">
-</div>
+如果运行成功，在终端中会显示下面的内容，具体的日志也会输出到`test_tipc/output/`文件夹中的文件中。
 
-- 商品识别
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769644-51604f80-d2d7-11eb-8290-c53b12a5c1f6.gif"  width = "400" />
-</div>
+```
+Run successfully with command - MobileNeXt_100 - python3 tools/train.py -c ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml -o Global.seed=1234 -o DataLoader.Train.sampler.shuffle=False -o DataLoader.Train.loader.num_workers=0 -o DataLoader.Train.loader.use_shared_memory=False -o Global.device=gpu  -o Global.output_dir=./test_tipc/output/MobileNeXt_100/lite_train_lite_infer/norm_train_gpus_0_autocast_null -o Global.epochs=2     -o DataLoader.Train.sampler.batch_size=8   !
+Run successfully with command - MobileNeXt_100 - python3 tools/eval.py -c ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml -o Global.pretrained_model=./test_tipc/output/MobileNeXt_100/lite_train_lite_infer/norm_train_gpus_0_autocast_null/MobileNeXt_100/latest -o Global.device=gpu  !
+Run successfully with command - MobileNeXt_100 - python3 tools/export_model.py -c ppcls/configs/ImageNet/MobileNeXt/MobileNeXt_100.yaml -o Global.pretrained_model=./test_tipc/output/MobileNeXt_100/lite_train_lite_infer/norm_train_gpus_0_autocast_null/MobileNeXt_100/latest -o Global.save_inference_dir=./test_tipc/output/MobileNeXt_100/lite_train_lite_infer/norm_train_gpus_0_autocast_null!
+Run successfully with command - MobileNeXt_100 - python3 python/predict_cls.py -c configs/inference_cls.yaml -o PreProcess.transform_ops.0.ResizeImage.interpolation=bicubic -o PreProcess.transform_ops.0.ResizeImage.backend=pil -o Global.use_gpu=True -o Global.use_tensorrt=False -o Global.use_fp16=False -o Global.inference_model_dir=.././test_tipc/output/MobileNeXt_100/lite_train_lite_infer/norm_train_gpus_0_autocast_null -o Global.batch_size=1 -o Global.infer_imgs=../dataset/ILSVRC2012/val -o Global.benchmark=True > .././test_tipc/output/MobileNeXt_100/lite_train_lite_infer/infer_gpu_usetrt_False_precision_False_batchsize_1.log 2>&1 !
+......
+```
 
-- 动漫人物识别
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769746-6b019700-d2d7-11eb-86df-f1d710999ba6.gif"  width = "400" />
-</div>
-
-- logo识别
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769837-7fde2a80-d2d7-11eb-9b69-04140e9d785f.gif"  width = "400" />
-</div>
+* 更多详细内容，请参考：[TIPC测试文档](./test_tipc/README.md)。
 
 
-- 车辆识别
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769916-8ec4dd00-d2d7-11eb-8c60-42d89e25030c.gif"  width = "400" />
-</div>
+## 6. License
+
+This project is released under BSD License.
 
 
-<a name="许可证书"></a>
+## 7. 参考链接与文献
 
-## 许可证书
-本项目的发布受<a href="https://github.com/PaddlePaddle/PaddleCLS/blob/master/LICENSE">Apache 2.0 license</a>许可认证。
+1. Rethinking Bottleneck Structure for Efficient Mobile Network Design: https://arxiv.org/pdf/2007.02269.pdf
+2. MobileNeXt: https://github.com/yitu-opensource/MobileNeXt
+3. rethinking_bottleneck_design: https://github.com/zhoudaquan/rethinking_bottleneck_design
 
-
-<a name="贡献代码"></a>
-## 贡献代码
-我们非常欢迎你为PaddleClas贡献代码，也十分感谢你的反馈。
-如果想为PaddleCLas贡献代码，可以参考[贡献指南](./docs/zh_CN/advanced_tutorials/how_to_contribute.md)。
-
-- 非常感谢[nblib](https://github.com/nblib)修正了PaddleClas中RandErasing的数据增广配置文件。
-- 非常感谢[chenpy228](https://github.com/chenpy228)修正了PaddleClas文档中的部分错别字。
-- 非常感谢[jm12138](https://github.com/jm12138)为PaddleClas添加ViT，DeiT系列模型和RepVGG系列模型。
+```
+@article{zhou2020rethinking,
+  title={Rethinking Bottleneck Structure for Efficient Mobile Network Design},
+  author={Zhou, Daquan and Hou, Qibin and Chen, Yunpeng and Feng, Jiashi and Yan, Shuicheng},
+  journal={ECCV, August},
+  year={2020}
+}
+```
