@@ -1,212 +1,242 @@
-简体中文 | [English](README_en.md)
+# CvT: Introducing Convolutions to Vision Transformers
 
-# PaddleClas
+## 目录
 
-## 简介
-
-飞桨图像识别套件PaddleClas是飞桨为工业界和学术界所准备的一个图像识别和图像分类任务的工具集，助力使用者训练出更好的视觉模型和应用落地。&nbsp;
-
-<div align="center">
-<img src="./docs/images/shituv2.gif"  width = "450" />
-<p>PP-ShiTuV2图像识别系统效果展示</p>
-</div>
-
-
-
-
-<div align="center">
-<img src="./docs/images/class_simple.gif"  width = "600" />
-<p>PULC实用图像分类模型效果展示</p>
-</div>
-
+* [1. 简介](#1-简介)
+* [2. 数据集和复现精度](#2-数据集和复现精度)
+   * [2.1 数据集](#21-数据集)
+   * [2.2 复现精度](#22-复现精度)
+* [3. 准备数据与环境](#3-准备数据与环境)
+   * [3.1 准备环境](#31-准备环境)
+   * [3.2 准备数据](#32-准备数据)
+* [4. 开始使用](#4-开始使用)
+   * [4.1 模型训练](#41-模型训练)
+   * [4.2 模型评估](#42-模型评估)
+   * [4.3 模型预测](#43-模型预测)
+   * [4.4 模型导出](#44-模型导出)
+* [5. 自动化测试脚本](#5-自动化测试脚本)
+* [6. License](#6-license)
+* [7. 参考链接与文献](#7-参考链接与文献)
 
 
-## 近期更新
+## 1. 简介
 
-- 🔥️ 发布[PP-ShiTuV2](docs/zh_CN/models/PP-ShiTu/README.md)，recall1精度提升8个点，覆盖[20+识别场景](docs/zh_CN/deployment/PP-ShiTu/application_scenarios.md)，新增[库管理工具](./deploy/shitu_index_manager/)，[Android Demo](./docs/zh_CN/quick_start/quick_start_recognition.md)全新体验。
-- 2022.9.4 新增[生鲜产品自主结算范例库](./docs/zh_CN/samples/Fresh_Food_Recogniiton/README.md)，具体内容可以在AI Studio上体验。
-- 2022.6.15 发布[PULC超轻量图像分类实用方案](docs/zh_CN/training/PULC.md)，CPU推理3ms，精度比肩SwinTransformer，覆盖人、车、OCR场景九大常见任务。
-- 2022.5.23 新增[人员出入管理范例库](https://aistudio.baidu.com/aistudio/projectdetail/4094475)，具体内容可以在 AI Studio 上体验。
-- 2022.5.20 上线[PP-HGNet](./docs/zh_CN/models/ImageNet1k/PP-HGNet.md), [PP-LCNetv2](./docs/zh_CN/models/ImageNet1k/PP-LCNetV2.md)。
-- [more](docs/zh_CN/version_history.md)
+这是一个PaddlePaddle实现的 CvT 。
 
-## 特性
+![](https://github.com/microsoft/CvT/blob/main/figures/pipeline.svg)
 
-PaddleClas发布了[PP-HGNet](docs/zh_CN/models/ImageNet1k/PP-HGNet.md)、[PP-LCNetv2](docs/zh_CN/models/ImageNet1k/PP-LCNetV2.md)、 [PP-LCNet](docs/zh_CN/models/ImageNet1k/PP-LCNet.md)和[SSLD半监督知识蒸馏方案](docs/zh_CN/training/advanced/ssld.md)等算法，
-并支持多种图像分类、识别相关算法，在此基础上打造[PULC超轻量图像分类方案](docs/zh_CN/quick_start/PULC.md)和[PP-ShiTu图像识别系统](./docs/zh_CN/quick_start/quick_start_recognition.md)。
-![](https://user-images.githubusercontent.com/11568925/189267545-7a6eefa0-b4fc-4ed0-ae9d-7c6d53f59798.png)
+**论文:**
+[CvT: Introducing Convolutions to Vision Transformers](https://arxiv.org/abs/2103.15808)
 
+**参考repo:**
+[CvT](https://github.com/microsoft/CvT)
 
-## 欢迎加入技术交流群
-
-* 欢迎加入PaddleClas 微信用户群（扫码填写问卷即可入群）
-
-<div align="center">
-  <img src="https://user-images.githubusercontent.com/45199522/173483779-2332f990-4941-4f8d-baee-69b62035fc31.png" width = "200" height = "200"/>
-</div>
+在此非常感谢`awindsor`和`lmk123568`等人的贡献，提高了本repo复现论文的效率。
 
 
-## 快速体验
+## 2. 数据集和复现精度
 
-PULC超轻量图像分类方案快速体验：[点击这里](docs/zh_CN/quick_start/PULC.md)
+### 2.1 数据集
 
-PP-ShiTu图像识别快速体验：[点击这里](./docs/zh_CN/quick_start/quick_start_recognition.md)
+[ImageNet](https://image-net.org/)项目是一个大型视觉数据库，用于视觉目标识别研究任务，该项目已手动标注了 1400 多万张图像。ImageNet-1k 是 ImageNet 数据集的子集，其包含 1000 个类别。训练集包含 1281167 个图像数据，验证集包含 50000 个图像数据。2010 年以来，ImageNet 项目每年举办一次图像分类竞赛，即 ImageNet 大规模视觉识别挑战赛（ILSVRC）。挑战赛使用的数据集即为 ImageNet-1k。到目前为止，ImageNet-1k 已经成为计算机视觉领域发展的最重要的数据集之一，其促进了整个计算机视觉的发展，很多计算机视觉下游任务的初始化模型都是基于该数据集训练得到的。
 
-PP-ShiTuV2 Android Demo APP，可扫描如下二维码，下载体验
+数据集 | 训练集大小 | 测试集大小 | 类别数 | 备注|
+:------:|:---------------:|:---------------------:|:-----------:|:-----------:
+[ImageNet1k](http://www.image-net.org/challenges/LSVRC/2012/)|1.2M| 50k | 1000 |
 
-<div align="center">
-<img src="./docs/images/quick_start/android_demo/PPShiTu_qrcode.png"  width = "240" height = "240" />
-<p>PP-ShiTuV2 Android Demo</p>
-</div>
+### 2.2 复现精度
 
+| 模型            | epochs | top1 acc (参考精度) | (复现精度) | 权重                 \| 训练日志   |
+|:--------------:|:------:|:------------------:|:---------:|:--------------------------------:|
+| cvt_13_224x224 |  300   | 81.6               | 81.6      | best_model.pdparams \| train.log |
 
-## 产业实践范例库
-
-- 基于PP-ShiTu v2的生鲜品自助结算： [点击这里](./docs/zh_CN/samples/Fresh_Food_Recogniiton/README.md)
-- 基于PULC人员出入视频管理： [点击这里](./docs/zh_CN/samples/Personnel_Access/README.md)
-- 基于 PP-ShiTu 的智慧商超商品识别：[点击这里](./docs/zh_CN/samples/Goods_Recognition/README.md)
-- 基于PP-ShiTu电梯内电瓶车入室识别：[点击这里](./docs/zh_CN/samples//Electromobile_In_Elevator_Detection/README.md)
-
-## 文档教程
-- [环境准备](docs/zh_CN/installation.md)
-- [PP-ShiTuV2图像识别系统介绍](docs/zh_CN/models/PP-ShiTu/README.md)
-  - [图像识别快速体验](docs/zh_CN/quick_start/quick_start_recognition.md)
-  - [20+应用场景库](docs/zh_CN/deployment/PP-ShiTu/application_scenarios.md)
-  - 子模块算法介绍及模型训练
-    - [主体检测](docs/zh_CN/training/PP-ShiTu/mainbody_detection.md)
-    - [特征提取模型](docs/zh_CN/training/PP-ShiTu/feature_extraction.md)
-    - [向量检索](docs/zh_CN/deployment/PP-ShiTu/vector_search.md)
-    - [哈希编码](docs/zh_CN/training/PP-ShiTu/deep_hashing.md)
-  - PipeLine 推理部署
-    - [基于python预测引擎推理](docs/zh_CN/deployment/image_classification/python.md#2)
-    - [基于C++预测引擎推理](deploy/cpp_shitu/readme.md)
-    - [服务化部署](docs/zh_CN/deployment/PP-ShiTu/paddle_serving.md)
-    - [端侧部署](docs/zh_CN/deployment/PP-ShiTu/paddle_lite.md)
-    - [库管理工具](docs/zh_CN/deployment/PP-ShiTu/gallery_manager.md)
-- [PULC超轻量图像分类实用方案](docs/zh_CN/training/PULC.md)
-  - [超轻量图像分类快速体验](docs/zh_CN/quick_start/PULC.md)
-  - [超轻量图像分类模型库](docs/zh_CN/models/PULC/model_list.md)
-    - [PULC有人/无人分类模型](docs/zh_CN/models/PULC/PULC_person_exists.md)
-    - [PULC人体属性识别模型](docs/zh_CN/models/PULC/PULC_person_attribute.md)
-    - [PULC佩戴安全帽分类模型](docs/zh_CN/models/PULC/PULC_safety_helmet.md)
-    - [PULC交通标志分类模型](docs/zh_CN/models/PULC/PULC_traffic_sign.md)
-    - [PULC车辆属性识别模型](docs/zh_CN/models/PULC/PULC_vehicle_attribute.md)
-    - [PULC有车/无车分类模型](docs/zh_CN/models/PULC/PULC_car_exists.md)
-    - [PULC含文字图像方向分类模型](docs/zh_CN/models/PULC/PULC_text_image_orientation.md)
-    - [PULC文本行方向分类模型](docs/zh_CN/models/PULC/PULC_textline_orientation.md)
-    - [PULC语种分类模型](docs/zh_CN/models/PULC/PULC_language_classification.md)
-  - [模型训练](docs/zh_CN/training/PULC.md)
-  - 推理部署
-    - [基于python预测引擎推理](docs/zh_CN/deployment/image_classification/python.md#1)
-    - [基于C++预测引擎推理](docs/zh_CN/deployment/image_classification/cpp/linux.md)
-    - [服务化部署](docs/zh_CN/deployment/image_classification/paddle_serving.md)
-    - [端侧部署](docs/zh_CN/deployment/image_classification/paddle_lite.md)
-    - [Paddle2ONNX模型转化与预测](docs/zh_CN/deployment/image_classification/paddle2onnx.md)
-  - [模型压缩](deploy/slim/README.md)
-- PP系列骨干网络模型
-  - [PP-HGNet](docs/zh_CN/models/ImageNet1k/PP-HGNet.md)
-  - [PP-LCNetv2](docs/zh_CN/models/ImageNet1k/PP-LCNetV2.md)
-  - [PP-LCNet](docs/zh_CN/models/ImageNet1k/PP-LCNet.md)
-- [SSLD半监督知识蒸馏方案](docs/zh_CN/training/advanced/ssld.md)
-- 前沿算法
-  - [骨干网络和预训练模型库](docs/zh_CN/models/ImageNet1k/model_list.md)
-  - [度量学习](docs/zh_CN/algorithm_introduction/metric_learning.md)
-    - [ReID](./docs/zh_CN/algorithm_introduction/ReID.md)
-  - [模型压缩](docs/zh_CN/algorithm_introduction/prune_quantization.md)
-  - [模型蒸馏](./docs/zh_CN/training/advanced/knowledge_distillation.md)
-  - [数据增强](docs/zh_CN/training/config_description/data_augmentation.md)
-- [产业实用范例库](docs/zh_CN/samples)
-- [30分钟快速体验图像分类](docs/zh_CN/quick_start/quick_start_classification_new_user.md)
-- FAQ
-  - [图像识别精选问题](docs/zh_CN/FAQ/faq_2021_s2.md)
-  - [图像分类精选问题](docs/zh_CN/FAQ/faq_selected_30.md)
-  - [图像分类FAQ第一季](docs/zh_CN/FAQ/faq_2020_s1.md)
-  - [图像分类FAQ第二季](docs/zh_CN/FAQ/faq_2021_s1.md)
-  - [图像分类FAQ第三季](docs/zh_CN/FAQ/faq_2022_s1.md)
-- [社区贡献指南](docs/zh_CN/community/how_to_contribute.md)
-- [许可证书](#许可证书)
-- [贡献代码](#贡献代码)
-
-<a name="图像识别系统介绍"></a>
-
-## PP-ShiTuV2图像识别系统
-
-<div align="center">
-<img src="./docs/images/structure.jpg"  width = "800" />
-</div>
+权重及训练日志下载地址：[百度网盘](https://pan.baidu.com/s/1dhrv6DBb-LC_z3sv53ZobQ?pwd=uqch)
 
 
-PP-ShiTuV2是一个实用的轻量级通用图像识别系统，主要由主体检测、特征学习和向量检索三个模块组成。该系统从骨干网络选择和调整、损失函数的选择、数据增强、学习率变换策略、正则化参数选择、预训练模型使用以及模型裁剪量化多个方面，采用多种策略，对各个模块的模型进行优化，PP-ShiTuV2相比V1，Recall1提升近8个点。更多细节请参考[PP-ShiTuV2详细介绍](docs/zh_CN/models/PP-ShiTu/README.md)。
+## 3. 准备数据与环境
 
-<a name="识别效果展示"></a>
+### 3.1 准备环境
 
-## PP-ShiTuV2图像识别系统效果展示
+硬件和框架版本等环境的要求如下：
 
-- 瓶装饮料识别
+- 硬件：4 * 3090
+- 框架：
+  - PaddlePaddle == 2.3.1
+  - Pillow == 8.4.0
 
-<div align="center">
-<img src="docs/images/drink_demo.gif">
-</div>
+* 安装paddlepaddle
+
+```bash
+# 安装GPU版本的Paddle
+pip install paddlepaddle-gpu==2.3.1
+```
+
+更多安装方法可以参考：[Paddle安装指南](https://www.paddlepaddle.org.cn/)。
+
+* 下载代码
+
+```bash
+git clone https://github.com/flytocc/PaddleClas.git
+cd PaddleClas
+git checkout -b CvT
+```
+
+* 安装requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3.2 准备数据
+
+参考 [2.1 数据集](#21-数据集)，从官方下载数据后，按如下格式组织数据，即可在 PaddleClas 中使用 ImageNet1k 数据集进行训练。
+
+```
+imagenet/
+    |_ train/
+    |  |_ n01440764
+    |  |  |_ n01440764_10026.JPEG
+    |  |  |_ ...
+    |  |_ ...
+    |  |
+    |  |_ n15075141
+    |     |_ ...
+    |     |_ n15075141_9993.JPEG
+    |_ val/
+    |  |_ ILSVRC2012_val_00000001.JPEG
+    |  |_ ...
+    |  |_ ILSVRC2012_val_00050000.JPEG
+    |_ train_list.txt
+    |_ val_list.txt
+```
 
 
-- 商品识别
+## 4. 开始使用
 
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769644-51604f80-d2d7-11eb-8290-c53b12a5c1f6.gif"  width = "400" />
-</div>
+### 4.1 模型训练
 
+* 单机多卡训练
 
-- 动漫人物识别
+```bash
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+python -m paddle.distributed.launch --gpus="0,1,2,3" \
+    tools/train.py \
+    -c ./ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml \
+    -o Global.update_freq=4
+```
+
+部分训练日志如下所示。
+
+```
+[2022/09/15 11:55:32] ppcls INFO: [Train][Epoch 260/300][Iter: 1000/2500]lr(LinearWarmup): 0.00010335, CELoss: 2.84290, loss: 2.84290, batch_cost: 0.60855s, reader_cost: 0.01440, ips: 210.33667 samples/s, eta: 17:10:17
+[2022/09/15 11:56:02] ppcls INFO: [Train][Epoch 260/300][Iter: 1050/2500]lr(LinearWarmup): 0.00010335, CELoss: 2.84662, loss: 2.84662, batch_cost: 0.60854s, reader_cost: 0.01392, ips: 210.33875 samples/s, eta: 17:09:46
+```
+
+### 4.2 模型评估
+
+```bash
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+python -m paddle.distributed.launch --gpus="0,1,2,3" \
+    tools/eval.py \
+    -c ./ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml \
+    -o Global.pretrained_model=$TRAINED_MODEL
+```
+
+### 4.3 模型预测
+
+```bash
+python tools/infer.py \
+    -c ./ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml \
+    -o Infer.infer_imgs=./deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg \
+    -o Global.pretrained_model=$TRAINED_MODEL
+```
 
 <div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769746-6b019700-d2d7-11eb-86df-f1d710999ba6.gif"  width = "400" />
+    <img src="./deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg" width=300">
 </div>
 
+最终输出结果为
+```
+[{'class_ids': [178, 211, 210, 246, 268], 'scores': [0.83223, 0.00164, 0.00102, 0.0009, 0.00086], 'file_name': './deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg', 'label_names': ['Weimaraner', 'vizsla, Hungarian pointer', 'German short-haired pointer', 'Great Dane', 'Mexican hairless']}]
+```
+表示预测的类别为`Weimaraner（魏玛猎狗）`，ID是`178`，置信度为`0.83223`。
 
-- logo识别
+### 4.4 模型导出
 
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769837-7fde2a80-d2d7-11eb-9b69-04140e9d785f.gif"  width = "400" />
-</div>
+```bash
+python tools/export_model.py \
+    -c ./ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml \
+    -o Global.save_inference_dir=./deploy/models/class_cvt_13_224x224_ImageNet_infer \
+    -o Global.pretrained_model=$TRAINED_MODEL
 
+python deploy/python/predict_cls.py \
+    -c deploy/configs/inference_cls.yaml \
+    -o Global.cpu_num_threads=1 \
+    -o Global.infer_imgs=./deploy/images/ImageNet/ILSVRC2012_val_00020010.jpeg \
+    -o Global.inference_model_dir=./deploy/models/class_cvt_13_224x224_ImageNet_infer \
+    -o PreProcess.transform_ops.0.ResizeImage.interpolation=bicubic \
+    -o PreProcess.transform_ops.0.ResizeImage.backend=pil \
+    -o PostProcess.Topk.class_id_map_file=./ppcls/utils/imagenet1k_label_list.txt
+```
 
-
-- 车辆识别
-
-<div align="center">
-<img src="https://user-images.githubusercontent.com/18028216/122769916-8ec4dd00-d2d7-11eb-8c60-42d89e25030c.gif"  width = "400" />
-</div>
-
-
-
-<a name="PULC超轻量图像分类方案"></a>
-
-## PULC超轻量图像分类方案
-<div align="center">
-<img src="https://user-images.githubusercontent.com/19523330/173011854-b10fcd7a-b799-4dfd-a1cf-9504952a3c44.png"  width = "800" />
-</div>
-PULC融合了骨干网络、数据增广、蒸馏等多种前沿算法，可以自动训练得到轻量且高精度的图像分类模型。
-PaddleClas提供了覆盖人、车、OCR场景九大常见任务的分类模型，CPU推理3ms，精度比肩SwinTransformer。
-
-<a name="分类效果展示"></a>
-
-## PULC实用图像分类模型效果展示
-<div align="center">
-<img src="docs/images/classification.gif">
-</div>
+输出结果为
+```
+ILSVRC2012_val_00020010.jpeg:   class id(s): [178, 211, 210, 246, 268], score(s): [0.83, 0.00, 0.00, 0.00, 0.00], label_name(s): ['Weimaraner', 'vizsla, Hungarian pointer', 'German short-haired pointer', 'Great Dane', 'Mexican hairless']
+```
+表示预测的类别为`Weimaraner（魏玛猎狗）`，ID是`178`，置信度为`0.83`。与predict.py结果的误差在正常范围内。
 
 
-<a name="许可证书"></a>
+## 5. 自动化测试脚本
 
-## 许可证书
-本项目的发布受<a href="https://github.com/PaddlePaddle/PaddleCLS/blob/master/LICENSE">Apache 2.0 license</a>许可认证。
+**详细日志在test_tipc/output**
+
+TIPC: [TIPC: test_tipc/README.md](./test_tipc/README.md)
+
+首先安装auto_log，需要进行安装，安装方式如下：
+auto_log的详细介绍参考https://github.com/LDOUBLEV/AutoLog。
+```bash
+git clone https://github.com/LDOUBLEV/AutoLog
+cd AutoLog/
+pip3 install -r requirements.txt
+python3 setup.py bdist_wheel
+pip3 install ./dist/auto_log-*-py3-none-any.whl
+```
+进行TIPC：
+```bash
+bash test_tipc/prepare.sh test_tipc/configs/CvT/cvt_13_224x224_train_infer_python.txt 'lite_train_lite_infer'
+
+bash test_tipc/test_train_inference_python.sh test_tipc/configs/CvT/cvt_13_224x224_train_infer_python.txt 'lite_train_lite_infer'
+```
+TIPC结果：
+
+如果运行成功，在终端中会显示下面的内容，具体的日志也会输出到`test_tipc/output/`文件夹中的文件中。
+
+```
+successfully with command - cvt_13_224x224 - python3 tools/train.py -c ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml -o Global.seed=1234 -o DataLoader.Train.sampler.shuffle=False -o DataLoader.Train.loader.num_workers=0 -o DataLoader.Train.loader.use_shared_memory=False -o Global.device=gpu -o Global.output_dir=/home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1 -o Global.epochs=2     -o DataLoader.Train.sampler.batch_size=8    - /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1.log !
+successfully with command - cvt_13_224x224 - python3 tools/eval.py -c ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml -o Global.pretrained_model=/home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1/cvt_13_224x224/latest -o Global.device=gpu   > /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1_eval.log 2>&1 - /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1_eval.log !
+successfully with command - cvt_13_224x224 - python3 tools/export_model.py -c ppcls/configs/ImageNet/CvT/cvt_13_224x224.yaml -o Global.pretrained_model=/home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1/cvt_13_224x224/latest -o Global.save_inference_dir=/home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1 > /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1_export.log 2>&1 - /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1_export.log !
+successfully with command - cvt_13_224x224 - python3 python/predict_cls.py -c configs/inference_cls.yaml -o PreProcess.transform_ops.0.ResizeImage.interpolation=bicubic -o PreProcess.transform_ops.0.ResizeImage.backend=pil -o Global.use_gpu=True -o Global.use_tensorrt=False -o Global.use_fp16=False -o Global.inference_model_dir=/home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/norm_train_gpus_0_autocast_null_nodes_1 -o Global.batch_size=1 -o Global.infer_imgs=../dataset/ILSVRC2012/val/ILSVRC2012_val_00000001.JPEG -o Global.benchmark=False > /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/python_infer_gpu_gpus_0_usetrt_False_precision_False_batchsize_1.log 2>&1  - /home/nieyang/PaddleClas/test_tipc/output/cvt_13_224x224/lite_train_lite_infer/python_infer_gpu_gpus_0_usetrt_False_precision_False_batchsize_1.log !
+......
+```
+
+* 更多详细内容，请参考：[TIPC测试文档](./test_tipc/README.md)。
 
 
-<a name="贡献代码"></a>
-## 贡献代码
-我们非常欢迎你为PaddleClas贡献代码，也十分感谢你的反馈。
-如果想为PaddleCLas贡献代码，可以参考[贡献指南](docs/zh_CN/community/how_to_contribute.md)。
+## 6. License
 
-- 非常感谢[nblib](https://github.com/nblib)修正了PaddleClas中RandErasing的数据增广配置文件。
-- 非常感谢[chenpy228](https://github.com/chenpy228)修正了PaddleClas文档中的部分错别字。
-- 非常感谢[jm12138](https://github.com/jm12138)为PaddleClas添加ViT，DeiT系列模型和RepVGG系列模型。
+This project is released under MIT License.
+
+If you find this work or code is helpful in your research, please cite:
+```
+@article{wu2021cvt,
+  title={Cvt: Introducing convolutions to vision transformers},
+  author={Wu, Haiping and Xiao, Bin and Codella, Noel and Liu, Mengchen and Dai, Xiyang and Yuan, Lu and Zhang, Lei},
+  journal={arXiv preprint arXiv:2103.15808},
+  year={2021}
+}
+```
+
+## 7. 参考链接与文献
+
+1. CvT: Introducing Convolutions to Vision Transformers: https://arxiv.org/abs/2103.15808
+2. CvT: https://github.com/microsoft/CvT
